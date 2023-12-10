@@ -34,7 +34,6 @@ foreign key (ClassId) references Class(Id)
 )
 go
 
--- hur fan kopplar jag kurser och klasser, separat tabell måste det nog bli
 create table ClassCourse (
 Id int primary key identity(1,1),
 ClassId int not null,
@@ -48,7 +47,7 @@ go
 create table Grades (
 Id int primary key identity(1,1),
 Grade int not null,
--- OBS funderar på att ha en tabell av alla kombinationer som tillåter null på Grade och GradeDate tills de fylls i
+-- OBS funderade på att ha en tabell av alla kombinationer som tillåter null på Grade och GradeDate tills de fyllts i
 -- men eftersom vi ska kunna lägga till nya studenter men vi behöver inte ge betyg så kommer jag inte skapa nya rader här vid skapande av elev
 GradeDate date not null,
 CourseId int not null,
@@ -138,79 +137,7 @@ select -- med lite hjälp av ChatGPT :)
     ROUND(RAND(CHECKSUM(NEWID())) * 4 + 1, 0), -- Slumpmässigt betyg mellan 1 och 5
     DATEADD(DAY, -CAST(RAND(CHECKSUM(NEWID())) * 100 AS INT), GETDATE()), -- Slumpmässigt datum
     s.Id,
-    c.Id
-from Students s, Course c
-
-
-
--- sql queries som kommer behövas
-
--- 1. **Hämta alla elever**
---    Användaren får välja om de vill se eleverna sorterade på för- eller efternamn och om det ska vara stigande eller fallande sortering.
-select FirstName, LastName
-from Students
-order by FirstName, LastName
--- eller: order by FirstName desc, LastName desc
-
---2. **Hämta alla elever i en viss klass**
---    Användaren ska först få se en lista med alla klasser som finns, sedan får användaren välja en av klasserna och då skrivs alla elever i den klassen ut.
---    Extra utmaning: låt användaren även få välja sortering på eleverna som i punkten ovan.
-select distinct ClassName
-from Class
-
-select s.FirstName, s.LastName
-from Students s, Class c
-where s.ClassID=c.ClassName
-	and c.ClassName=(!!!!!chosen ClassName)
-order by FirstName, LastName
-  -- eller: order by FirstName desc, LastName desc
-  
---3. **Lägga till ny personal**
---    Användaren ska ha möjlighet att mata in uppgifter om en ny anställd och den datan sparas då ner i databasen.
-insert into Staff(FirstName, LastName, CategoryId)
-values
-(!!!! chosen values!!!!)
-
-    
---4. **Hämta personal**
---    Användaren får välja om denna vill se alla anställda, eller bara inom en av kategorierna så som ex lärare.
-    
-select s.FirstName, s.LastName
-from Staff s, StaffCategory sc
-where s.CategoryId=sc.Id
-	and sc.Category=(!!!!!chosen Category!!)
--- eller alla oavsett category!
-
---5. **Hämta alla betyg som satts den senaste månaden**
---    Här får användaren se en lista med alla betyg som satts senaste månaden där elevens namn, kursens namn och betyget framgår.
-select 
-	s.FirstName,
-	s.LastName,
-	c.CourseName,
-	g.Grade,
-	g.GradeDate
-from Students s 
-	left join ClassCourse cc on s.ClassID=cc.ClassId
-	left join Course c on c.Id=cc.CourseId
-	left join Grades g on g.CourseId=c.Id and g.StudentId=s.Id
-where g.GradeDate between convert(date,GETDATE()) and DATEADD(month, -1, convert(date,getdate())
+    c.CourseId
+from Students s, ClassCourse c
+where s.ClassId=c.ClassId 
 go
-
---6. **Snittbetyg per kurs**
---    Hämta en lista med alla kurser och det snittbetyg som eleverna fått på den kursen samt det högsta och lägsta betyget som någon fått i kursen.
---    Här får användaren se en lista med alla kurser i databasen, snittbetyget samt det högsta och lägsta betyget för varje kurs.
---    Tips: Det kan vara svårt att göra detta med betyg i form av bokstäver så du kan välja att lagra betygen som siffror i stället.
-select 
-	c.CourseName,
-	Count(g.Grade) as NumberOfGrades,
-	avg(convert(decimal,g.Grade)) as MeanGrade,
-	min(g.Grade) as MinGrade,
-	max(g.Grade) as MaxGrade
-from Course c  
-	left join Grades g on g.CourseId=c.Id
-group by 
-	c.CourseName
-
-    
---7. **Lägga till nya elever**
---    Användaren får möjlighet att mata in uppgifter om en ny elev och den datan sparas då ner i databasen.

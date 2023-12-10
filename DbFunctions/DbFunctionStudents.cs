@@ -41,14 +41,15 @@ namespace Lab1_SQL.DbFunctions
                 }
                 using (SqlCommand command = new SqlCommand(sqlQuery, connection))
                 {
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        Console.WriteLine("------- ");
-                        Console.WriteLine("Ange ett klassnamn för att se alla elever i den: ");
+                    Console.WriteLine("------- ");
+                    Console.WriteLine("Ange ett klassnamn för att se alla elever i den: ");
 
-                        while (true)
+                    while (true)
+                    {
+                        string input = Console.ReadLine();
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            string input = Console.ReadLine();
+
                             while (reader.Read())
                             {
                                 className = reader.GetString(reader.GetOrdinal("ClassName"));
@@ -59,9 +60,10 @@ namespace Lab1_SQL.DbFunctions
                                     break;
                                 }
                             }
-                            if (classId != 0) break;
-                            Console.WriteLine("Du kan bara ange klasser från listan ovan. Försök igen: ");
+
                         }
+                        if (classId != 0) break;
+                        Console.WriteLine("Du kan bara ange klasser från listan ovan. Försök igen: ");
                     }
                 }
             }
@@ -122,10 +124,97 @@ namespace Lab1_SQL.DbFunctions
             }
             Console.WriteLine("------- ");
             Console.Write("Tryck Enter för att komma tillbaka till menyn ");
-            // men jag tillåter trycka vad som helst, inte bara Enter
             Console.ReadKey();
         }
 
+        public static void AddStudent()
+        {
+            string sqlQueryListClasses = "select ClassName from Class";
+
+            string sqlQueryGetClassId = "select Id from Class where ClassName = @ClassName";// OBS förenkling, antar inga dubbletter på namnen
+
+            string sqlQueryInsertStudent = $"insert into Students(FirstName, LastName, ClassId)" +
+                                $"values" +
+                                $"(@FirstName, @LastName, @ClassId)";
+
+
+
+            Console.Clear();
+            Console.WriteLine("Här kan du lägga till en ny student.");
+            Console.Write("Ange förnamn: ");
+            string firstName = Console.ReadLine();
+
+            Console.Write("Ange efternamn: ");
+            string lastName = Console.ReadLine();
+
+            Console.WriteLine("------- Det finns dessa klasser i skolan: ");
+            string className;
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                // visa listan med klasser
+                using (SqlCommand command = new SqlCommand(sqlQueryListClasses, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            className = reader.GetString(reader.GetOrdinal("ClassName"));
+                            Console.WriteLine($"{className}");
+                        }
+                    }
+                }
+
+                // hämta info om vilken klass ska studenten läggas till
+                Console.Write($"------- \nI vilken klass går {firstName} {lastName}? ");
+                string input = Console.ReadLine();
+                int classId = 0;
+
+                using (SqlCommand command = new SqlCommand(sqlQueryGetClassId, connection))
+                {
+                    while (true)
+                    {
+                        command.Parameters.Clear();
+                        command.Parameters.AddWithValue("@ClassName", input);
+
+                        var test = command.ExecuteScalar();
+                        if (test is not null)
+                        {
+                            classId = (int)test;
+                        }
+                        if (classId != 0) break;
+                        Console.Write("Du kan bara ange klassnamn från listan ovan. Försök igen: ");
+                        input = Console.ReadLine();
+                    }
+
+                }
+
+                // lägg till studenten
+                using (SqlCommand command = new SqlCommand(sqlQueryInsertStudent, connection))
+                {
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@FirstName", firstName);
+                    command.Parameters.AddWithValue("@LastName", lastName);
+                    command.Parameters.AddWithValue("@ClassId", classId);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine($"{firstName} {lastName} tillagd i klass {input}!");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Det gick inte att lägga till {firstName} {lastName}.");
+                    }
+                    Console.WriteLine("------- ");
+                    Console.Write("Tryck Enter för att komma tillbaka till menyn");
+                    Console.ReadKey();
+                }
+            }
+
+        }
 
     }
 }

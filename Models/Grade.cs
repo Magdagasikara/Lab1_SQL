@@ -7,7 +7,7 @@ public partial class Grade
 {
     public int Id { get; set; }
 
-    public int Grade1 { get; set; }
+    public int Grade1 { get; set; } // varför blev heter Grade1 här efter scaffold men det ska va Grade?
 
     public DateOnly GradeDate { get; set; }
 

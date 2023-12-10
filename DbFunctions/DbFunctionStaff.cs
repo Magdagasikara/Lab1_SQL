@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SqlClient;
-using Lab1_SQL.Models;
-using System.Diagnostics.Metrics;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using System.Reflection.PortableExecutable;
+﻿using System.Data.SqlClient;
 
 namespace Lab1_SQL.DbFunctions
 {
@@ -15,13 +6,12 @@ namespace Lab1_SQL.DbFunctions
     {
         static string connectionString = "Data Source=(localdb)\\.;Initial Catalog=School;Integrated Security=True";
 
-        
+
         public static void AddStaff()
         {
             string sqlQueryListStaffCat = "select Category from StaffCategory";
 
-            // OBS förenkling, jag gör inga kontroller på att namnet Category inte finns dubbelt för flera Id
-            string sqlQueryGetCategoryId = "select Id from StaffCategory where Category = @Category";
+            string sqlQueryGetCategoryId = "select Id from StaffCategory where Category = @Category";// OBS förenkling, jag gör inga kontroller på att namnet Category inte finns dubbelt för flera Id
 
             string sqlQueryInsertStaff = $"insert into Staff(FirstName, LastName, CategoryId)" +
                                 $"values" +
@@ -63,8 +53,6 @@ namespace Lab1_SQL.DbFunctions
 
                 using (SqlCommand command = new SqlCommand(sqlQueryGetCategoryId, connection))
                 {
-                    // den där sökningen gjorde jag annorlunda i Students,
-                    // då sökte jag igenom allt tills det matchade, här försöker jag annan väg...
                     while (true)
                     {
                         command.Parameters.Clear();
@@ -79,16 +67,16 @@ namespace Lab1_SQL.DbFunctions
                         Console.Write("Du kan bara ange kategorier från listan ovan. Försök igen: ");
                         input = Console.ReadLine();
                     }
-
                 }
 
+                // lägg till personal
                 using (SqlCommand command = new SqlCommand(sqlQueryInsertStaff, connection))
                 {
                     command.Parameters.Clear();
                     command.Parameters.AddWithValue("@FirstName", firstName);
                     command.Parameters.AddWithValue("@LastName", lastName);
                     command.Parameters.AddWithValue("@CategoryId", categoryId);
-                    // Exekvera kommandot gör man så tydligen:
+
                     int rowsAffected = command.ExecuteNonQuery();
 
                     if (rowsAffected > 0)
@@ -101,11 +89,9 @@ namespace Lab1_SQL.DbFunctions
                     }
                     Console.WriteLine("------- ");
                     Console.Write("Tryck Enter för att komma tillbaka till menyn");
-                    // men jag tillåter trycka vad som helst, inte bara Enter
                     Console.ReadKey();
                 }
             }
-
         }
 
         public static void GetStaffByCategory()
@@ -120,11 +106,11 @@ namespace Lab1_SQL.DbFunctions
 
 
             int categoryId = 0;
-            string categoryName = "";
+            string category = "";
 
             Console.Clear();
             Console.WriteLine("------- Vill du se all personal eller inom en kategori? ");
-            string category;
+
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 connection.Open();
@@ -174,11 +160,7 @@ namespace Lab1_SQL.DbFunctions
                 {
                     GetStaff();
                 }
-
             }
-
-
-
         }
 
         public static void GetStaff(int categoryId = 0, string category = "")
@@ -194,7 +176,7 @@ namespace Lab1_SQL.DbFunctions
 
             }
             string sqlQuery = $"select st.FirstName, st.LastName " +
-                                $"from Staff st, StaffCategory sc " +////// cidare här
+                                $"from Staff st, StaffCategory sc " +
                                 $"where st.CategoryId = sc.Id {sqlChooseCategory}" +
                                 $"order by st.FirstName, st.LastName";
 
@@ -218,11 +200,7 @@ namespace Lab1_SQL.DbFunctions
             }
             Console.WriteLine("------- ");
             Console.Write("Tryck Enter för att komma tillbaka till menyn ");
-            // men jag tillåter trycka vad som helst, inte bara Enter
             Console.ReadKey();
         }
-
-
-
     }
 }

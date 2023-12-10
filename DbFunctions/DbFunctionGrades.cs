@@ -1,6 +1,5 @@
-﻿using System.Data.SqlClient;
-using ConsoleTables;
-using Lab1_SQL.Models;
+﻿using ConsoleTables;
+using System.Data.SqlClient;
 
 namespace Lab1_SQL.DbFunctions
 {
@@ -8,7 +7,7 @@ namespace Lab1_SQL.DbFunctions
     {
         static string connectionString = "Data Source=(localdb)\\.;Initial Catalog=School;Integrated Security=True";
 
-        public static void GetLastMonthsGrades()
+        public static void GetLastMonthGrades()
         {
             string sqlQuery = $"select " +
                                 "s.FirstName, " +
@@ -69,7 +68,7 @@ namespace Lab1_SQL.DbFunctions
                                  "c.CourseName";
 
             Console.Clear();
-            Console.WriteLine("------- Betygstatistiken per kurs: ");
+            Console.WriteLine("------- Betygsstatistiken per kurs: ");
             var table = new ConsoleTable("Kurs", "Antal betyg", "Medelbetyg", "Lägsta betyg", "Högsta betyg");
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
