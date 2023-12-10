@@ -49,6 +49,7 @@ create table Grades (
 Id int primary key identity(1,1),
 Grade int not null,
 -- OBS funderar på att ha en tabell av alla kombinationer som tillåter null på Grade och GradeDate tills de fylls i
+-- men eftersom vi ska kunna lägga till nya studenter men vi behöver inte ge betyg så kommer jag inte skapa nya rader här vid skapande av elev
 GradeDate date not null,
 CourseId int not null,
 StudentId int not null
